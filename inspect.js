@@ -1,16 +1,16 @@
 'use strict'
 
-var log4js = require('log4js'),
+const log4js = require('log4js'),
     logger = log4js.getLogger('server'),
-    configjs = require('./config/init-auth-config.js'),
+    configjs = require('./lib/config/init-auth-config.js.js'),
     OAuth2Strategy = require('passport-oauth2'),
-    inspectClient = require('./inspect-client')
+    inspectClient = require('./lib/inspect-client')
 
-var log4js_config = process.env.LOG4JS_CONFIG ? JSON.parse(process.env.LOG4JS_CONFIG) : undefined
+const log4js_config = process.env.LOG4JS_CONFIG ? JSON.parse(process.env.LOG4JS_CONFIG) : undefined
 log4js.configure(log4js_config || 'config/log4js.json')
 
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
-const contextpath = process.env['contextpath']
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+const contextpath = process.env.contextpath
 
 module.exports.initializePassport = (passport) => {
   configjs.initialize((err, config) => {
