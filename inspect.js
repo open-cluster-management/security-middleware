@@ -14,7 +14,10 @@ const contextpath = process.env.contextpath
 
 module.exports.initializePassport = (passport) => {
   configjs.initialize((err, config) => {
-
+    if (err) {
+      logger.error('Initilized failed', err)
+      process.exit(1)
+    }
     //token review api to validate Bearer token/ retrieve user info
     const request = require('request').defaults({ rejectUnauthorized: false })
     const options = {
