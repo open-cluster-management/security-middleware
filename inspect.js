@@ -10,9 +10,11 @@ const log4js_config = process.env.LOG4JS_CONFIG ? JSON.parse(process.env.LOG4JS_
 log4js.configure(log4js_config || 'config/log4js.json')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
-const contextpath = process.env.contextpath
+let contextpath = process.env.contextpath
 
-module.exports.initializePassport = (passport) => {
+module.exports.initializePassport = (passport, path) => {
+  if (path)
+    contextpath = path
   configjs.initialize((err, config) => {
     if (err) {
       logger.error('Initilized failed', err)
