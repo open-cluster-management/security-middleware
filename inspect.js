@@ -2,7 +2,7 @@
 
 const log4js = require('log4js'),
     logger = log4js.getLogger('server'),
-    configjs = require('./lib/config/init-auth-config.js.js'),
+    configjs = require('./lib/config/init-auth-config.js'),
     OAuth2Strategy = require('passport-oauth2'),
     inspectClient = require('./lib/inspect-client')
 
