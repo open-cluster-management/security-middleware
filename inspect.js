@@ -6,7 +6,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const log4js = require('log4js');
 
-const logger = log4js.getLogger('server');
+const logger = log4js.getLogger();
 const passport = require('passport');
 const OAuth2Strategy = require('passport-oauth2');
 const request = require('request').defaults({ rejectUnauthorized: false });
