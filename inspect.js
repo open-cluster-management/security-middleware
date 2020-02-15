@@ -128,6 +128,7 @@ module.exports.logout = (req, res) => {
 
 module.exports.app = (req, res, next) => {
   let token
+  logger.info(req.headers)
   if (req.headers.authorization || req.headers.Authorization) {
     token = req.headers.authorization ? req.headers.authorization : req.headers.Authorization
     const words = token.trim().split(/[\s,]+/)
