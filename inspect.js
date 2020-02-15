@@ -133,7 +133,7 @@ module.exports.app = (req, res, next) => {
     token = req.headers.authorization ? req.headers.authorization : req.headers.Authorization
     const words = token.trim().split(/[\s,]+/)
     if (!(words[0].toLowerCase().match('bearer'))) {
-      res.status(403).send('No bearer in value')
+      return res.status(403).send('No bearer in value')
     }
     if (words[1] && words[1].length > 1) {
       [, token] = words
