@@ -1,7 +1,7 @@
 'use strict'
 
 const log4js = require('log4js'),
-    logger = log4js.getLogger('server'),
+    logger = log4js.getLogger(),
     configjs = require('./lib/config/init-auth-config.js'),
     OAuth2Strategy = require('passport-oauth2'),
     inspectClient = require('./lib/inspect-client')
@@ -13,8 +13,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 let contextpath = process.env.contextpath
 
 module.exports.initializePassport = (passport, path) => {
-  if (path)
+  if (path) {
     contextpath = path
+  }
   configjs.initialize((err, config) => {
     if (err) {
       logger.error('Initilized failed', err)
@@ -77,9 +78,9 @@ module.exports.initializePassport = (passport, path) => {
     })
   })
 }
-
 module.exports.auth = (passport) => passport.authenticate('oauth2', { failureRedirect: `${contextpath}/auth/login` })
 module.exports.callback = (req, res) => {
+  logger.debug(req.headers)
   res.cookie('acm-access-token-cookie', req.session.passport.user.token)
   req.user = req.session.passport.user
   const redirectURL = req.cookies.redirectURL == '' ? `${contextpath}/welcome` : req.cookies.redirectURL
@@ -88,17 +89,24 @@ module.exports.callback = (req, res) => {
 }
 
 module.exports.validate = (req, res, next) => {
-  if ((!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
+  logger.debug(req.headers)
+  if (!req.headers['x-forwarded-access-token'] && (!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
     res.cookie('redirectURL', req.originalUrl)
     res.redirect(`${contextpath}/auth/login`)
   } else {
+    //header exists, set it on cookie if doesn't exist
+    if (!req.cookies['acm-access-token-cookie'] && req.headers['x-forwarded-access-token']) {
+      res.cookie('acm-access-token-cookie', req.headers['x-forwarded-access-token'])
+    } 
     //cookie exists, need to validate before proceeding
-    const token = req.cookies['acm-access-token-cookie'] || req.session.passport.user.token
+    const token = req.headers['x-forwarded-access-token'] || req.cookies['acm-access-token-cookie'] || req.session.passport.user.token
+    logger.debug('Already logged in: ', token)
     inspectClient.inspect(req, token, (err, response, body) => {
       if (err) {
         return res.status(500).send(err.details)
       } else if (body && body.status && body.status.user && response.statusCode == 201) {
         req.user = body.status.user
+        logger.debug(req.user)
         logger.info('Security middleware check passed')
         return next()
       }
