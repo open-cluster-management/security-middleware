@@ -1,0 +1,16 @@
+{
+	"appenders": {
+		"console": {
+			"type": "console",
+			"layout": {
+				"type": "pattern",
+				"pattern": "[%d] [%p] [grc-ui-api] [%c] %m "
+			}
+		}
+	},
+	"categories": {
+		"default": { "appenders": ["console"], "level": "info", "enableCallStack": false },
+		"request": { "appenders": ["console"], "level": "error", "enableCallStack": false },
+		"hcm-client": { "appenders": ["console"], "level": "debug", "enableCallStack": false  }
+	}
+}

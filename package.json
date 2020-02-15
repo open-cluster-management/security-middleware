@@ -4,7 +4,8 @@
   "description": "security middleware for openshift oauth",
   "main": "inspect.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --ext .jsx,.js ."
   },
   "repository": {
     "type": "git",
@@ -17,11 +18,17 @@
   },
   "homepage": "https://github.com/open-cluster-management/security-middleware#readme",
   "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "express-session": "^1.17.0",
     "log4js": "^6.1.2",
+    "passport": "^0.4.1",
     "passport-oauth2": "^1.5.0",
     "request": "^2.88.2"
   },
   "devDependencies": {
-    "eslint": "^6.8.0"
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1"
   }
 }
