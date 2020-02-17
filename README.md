@@ -13,3 +13,14 @@ To run it locally, you will also need
 process.env.API_SERVER_URL
 process.env.SERVICEACCT_TOKEN
 ```
+
+To protect `ui`
+```javascript
+const inspect = require('security-middleware')
+router.all(['/', '/*'], inspect.ui(), app)
+```
+To protect `api`
+```javascript
+const inspect = require('security-middleware')
+router.all(['/', '/*'], inspect.app, app)
+```
