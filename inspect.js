@@ -28,8 +28,8 @@ const app = (req, res, next) => {
     if (words[1] && words[1].length > 1) {
       [, token] = words;
     }
-  } else if (req.get('Authorization')) {
-    token = req.get('Authorization');
+  } else if (req.cookies['acm-access-token-cookie']) {
+    token = req.cookies['acm-access-token-cookie']
   }
 
   if (!token) {
@@ -44,7 +44,7 @@ const app = (req, res, next) => {
     } if (body && body.status && body.status.user) {
       req.user = body.status.user;
       req.token = token;
-      logger.info(req.user);
+      logger.debug(req.user);
       return next();
     }
     return res.status(401).send('The token provided is not valid');
@@ -63,6 +63,7 @@ const ui = () => {
   if (process.env.NODE_ENV === 'production') {
     router.all('*', app);
   } else {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
     configjs.initialize((err, config) => {
       if (err) {
         logger.error('Initilized failed', err);
@@ -135,7 +136,6 @@ const ui = () => {
     router.get(`${contextpath}/auth/login`, passport.authenticate('oauth2'));
 
     router.get(`${contextpath}/auth/callback`, passport.authenticate('oauth2', { failureRedirect: `${contextpath}/auth/login` }), (req, res) => {
-      // logger.info(req.headers);
       res.cookie('acm-access-token-cookie', req.session.passport.user.token);
       req.user = req.session.passport.user;
       const redirectURL = req.cookies.redirectURL === '' ? `${contextpath}/welcome` : req.cookies.redirectURL;
@@ -154,27 +154,20 @@ const ui = () => {
     });
 
     router.all('*', (req, res, next) => {
-      // logger.info(req.headers);
-      if (!req.headers['x-forwarded-access-token'] && (!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
+      if ((!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
         res.cookie('redirectURL', req.originalUrl);
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
         res.redirect(`${contextpath}/auth/login`);
       } else {
-        // header exists, set it on cookie if doesn't exist
-        if (!req.cookies['acm-access-token-cookie'] && req.headers['x-forwarded-access-token']) {
-          res.cookie('acm-access-token-cookie', req.headers['x-forwarded-access-token']);
-        }
         // cookie exists, need to validate before proceeding
-        const token = req.headers['x-forwarded-access-token'] || req.cookies['acm-access-token-cookie'] || req.session.passport.user.token;
-        logger.info('Already logged in: ', token);
+        const token = req.cookies['acm-access-token-cookie'] || req.session.passport.user.token;
+        logger.debug('Already logged in: ', token);
         inspectClient.inspect(req, token, (err, response, body) => {
           if (err) {
             return res.status(500).send(err.details);
           } if (body && body.status && body.status.user && response.statusCode === 201) {
             req.user = body.status.user;
-            logger.info(req.user);
+            logger.debug(req.user);
             logger.info('Security middleware check passed');
-            process.env.NODE_TLS_REJECT_UNAUTHORIZED = 1;
             return next();
           }
           logger.info('Security middleware check failed; redirecting to login');
