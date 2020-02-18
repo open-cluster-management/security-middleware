@@ -146,19 +146,97 @@ const ui = () => {
       res.redirect(redirectURL);
     });
 
-    router.get(`${contextpath}/logout`, (req, res) => {
-      req.session.destroy((err) => {
+    router.get(`${contextpath}/logout`, (req, res, next) => {
+      logger.info('starting logout process...')
+      const user = req.user ? req.user : null
+      // needed to fully log out
+      const token = req.headers['x-forwarded-access-token'] || req.cookies['acm-access-token-cookie'] || req.session.passport.user.token
+      configjs.initialize((err, config) => {
         if (err) {
-          return logger.error(err);
+          logger.error('Initilized failed', err);
+          process.exit(1);
         }
-        res.clearCookie('connect.sid');
-        return res.redirect(`${contextpath}/auth/login`);
-      });
+        const logoutOptions = {
+          url: `${config.ocp.apiserver_url}/apis/oauth.openshift.io/v1/oauthaccesstokens/${token}`,
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+        logger.info('sending initial logout request...')
+        request.delete(logoutOptions, (err, response) => {
+          logger.info(response.body)
+          if (err) {
+            logger.error('error with initial request')
+            return res.status(500).send(err.details)
+          } else if (response.statusCode !== 200) {
+            return res.status(response.statusCode).send(response.statusMessage)
+          } else {
+            logger.info('user:')
+            logger.info(user)
+            if (user && user.username && user.username == 'kube:admin') {
+              const oauthHost = config.ocp.oauth2_tokenpath.substring(0, config.ocp.oauth2_tokenpath.length - 12)
+              logger.info(`${oauthHost}/logout`)
+              const adminLogoutOptions = {
+                url: `${oauthHost}/logout`,
+              }
+              request.post(adminLogoutOptions, (err, adminResponse) => {
+                if (err) {
+                  logger.error('error with admin request')
+                  return res.status(500).send(err.details)
+                } else if (response.statusCode !== 200) {
+                  return res.status(response.statusCode).send(response.statusMessage)
+                }
+                logger.info(adminResponse.statusCode)
+                logger.info(adminResponse.statusMessage)
+                req.logout()
+                req.session.destroy((err) => {
+                  if (err) {
+                    return logger.error(err)
+                  }
+                  res.clearCookie('connect.sid')
+                  res.clearCookie('acm-access-token-cookie')
+                  // cookieUtil.deleteAuthCookies(res)
+                  logger.info('redirecting to login from admin cb...')
+                  // res.redirect(`${contextpath}/auth/login`)
+                  return next()
+                })
+              })
+              // const form = document.createElement('form')
+              // form.action = `${oauthHost}/logout`
+              // form.method = 'POST'
+              // // Redirect back to the console when logout is complete by passing a
+              // // `then` parameter.
+              // const input = document.createElement('input')
+              // input.type = 'hidden'
+              // input.name = 'then'
+              // input.value = `${contextpath}/auth/login`
+              // form.appendChild(input)
+              // document.body.appendChild(form)
+              // form.submit()
+            } else {
+              req.session.destroy((err) => {
+                if (err) {
+                  return logger.error(err)
+                }
+                res.clearCookie('connect.sid')
+                cookieUtil.deleteAuthCookies(res)
+                req.logout()
+                logger.info('redirecting to login...')
+                // return res.redirect(`${contextpath}/auth/login`)
+                return next()
+              })
+            }
+          }
+        })
+      })
     });
 
     router.all('*', (req, res, next) => {
-      if ((!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
-        res.cookie('redirectURL', req.originalUrl);
+      if ((!req.session || !req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
+        const redirect = req.originalUrl.endsWith('logout') ? contextpath : req.originalUrl;
+        res.cookie('redirectURL', redirect);
         res.redirect(`${contextpath}/auth/login`);
       } else {
         // cookie exists, need to validate before proceeding
