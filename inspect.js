@@ -127,7 +127,10 @@ const ui = () => {
     });
 
     router.use(session(
-      { secret: process.env.OAUTH2_CLIENT_SECRET, resave: true, saveUninitialized: true },
+      { secret: process.env.OAUTH2_CLIENT_SECRET, 
+        resave: true, saveUninitialized: true, 
+        cookie: { maxAge: 12 * 60 * 60 * 1000 }
+      },
     ));
     router.use(bodyParser.urlencoded({ extended: false }));
     router.use(passport.initialize());
@@ -136,7 +139,7 @@ const ui = () => {
     router.get(`${contextpath}/auth/login`, passport.authenticate('oauth2'));
 
     router.get(`${contextpath}/auth/callback`, passport.authenticate('oauth2', { failureRedirect: `${contextpath}/auth/login` }), (req, res) => {
-      res.cookie('acm-access-token-cookie', req.session.passport.user.token, { maxAge: 12 * 60 * 60 * 1000 });
+      res.cookie('acm-access-token-cookie', req.session.passport.user.token);
       req.user = req.session.passport.user;
       const redirectURL = req.cookies.redirectURL === '' ? `${contextpath}/welcome` : req.cookies.redirectURL;
       res.clearCookie('redirectURL');
@@ -155,7 +158,7 @@ const ui = () => {
 
     router.all('*', (req, res, next) => {
       if ((!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
-        res.cookie('redirectURL', req.originalUrl, { maxAge: 12 * 60 * 60 * 1000 });
+        res.cookie('redirectURL', req.originalUrl);
         res.redirect(`${contextpath}/auth/login`);
       } else {
         // cookie exists, need to validate before proceeding
