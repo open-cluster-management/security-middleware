@@ -97,17 +97,26 @@ const logout = (req, res, next) => {
             logger.info(adminResponse.statusCode)
             logger.info(adminResponse.statusMessage)
             req.logout()
-            req.session.destroy((err) => {
-              if (err) {
-                return logger.error(err)
-              }
+            if (req.session) {
+              req.session.destroy((err) => {
+                if (err) {
+                  return logger.error(err)
+                }
+                res.clearCookie('connect.sid')
+                res.clearCookie('acm-access-token-cookie')
+                // cookieUtil.deleteAuthCookies(res)
+                logger.info('redirecting to login from admin cb...')
+                // res.redirect(`${contextpath}/auth/login`)
+                return next()
+              })
+            } else {
               res.clearCookie('connect.sid')
               res.clearCookie('acm-access-token-cookie')
               // cookieUtil.deleteAuthCookies(res)
               logger.info('redirecting to login from admin cb...')
               // res.redirect(`${contextpath}/auth/login`)
               return next()
-            })
+            }
           })
           // const form = document.createElement('form')
           // form.action = `${oauthHost}/logout`
@@ -122,17 +131,28 @@ const logout = (req, res, next) => {
           // document.body.appendChild(form)
           // form.submit()
         } else {
-          req.session.destroy((err) => {
-            if (err) {
-              return logger.error(err)
-            }
+          if (req.session) {
+            req.session.destroy((err) => {
+              if (err) {
+                return logger.error(err)
+              }
+              res.clearCookie('connect.sid')
+              res.clearCookie('acm-access-token-cookie')
+              // cookieUtil.deleteAuthCookies(res)
+              req.logout()
+              logger.info('redirecting to login...')
+              // return res.redirect(`${contextpath}/auth/login`)
+              return next()
+            })
+          } else {
             res.clearCookie('connect.sid')
-            cookieUtil.deleteAuthCookies(res)
+            res.clearCookie('acm-access-token-cookie')
+            // cookieUtil.deleteAuthCookies(res)
             req.logout()
             logger.info('redirecting to login...')
             // return res.redirect(`${contextpath}/auth/login`)
             return next()
-          })
+          }
         }
       }
     })
