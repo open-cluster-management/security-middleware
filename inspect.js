@@ -28,8 +28,8 @@ const app = (req, res, next) => {
     if (words[1] && words[1].length > 1) {
       [, token] = words;
     }
-  } else if (req.get('Authorization')) {
-    token = req.get('Authorization');
+  } else if (req.cookies['acm-access-token-cookie']) {
+    token = req.cookies['acm-access-token-cookie']
   }
 
   if (!token) {
