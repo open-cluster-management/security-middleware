@@ -29,7 +29,7 @@ const app = (req, res, next) => {
       [, token] = words;
     }
   } else if (req.cookies['acm-access-token-cookie']) {
-    token = req.cookies['acm-access-token-cookie']
+    token = `Bearer ${req.cookies['acm-access-token-cookie']}`
   }
 
   if (!token) {
@@ -136,7 +136,7 @@ const ui = () => {
     router.get(`${contextpath}/auth/login`, passport.authenticate('oauth2'));
 
     router.get(`${contextpath}/auth/callback`, passport.authenticate('oauth2', { failureRedirect: `${contextpath}/auth/login` }), (req, res) => {
-      res.cookie('acm-access-token-cookie', req.session.passport.user.token);
+      res.cookie('acm-access-token-cookie', req.session.passport.user.token, { maxAge: 12 * 60 * 60 * 1000 });
       req.user = req.session.passport.user;
       const redirectURL = req.cookies.redirectURL === '' ? `${contextpath}/welcome` : req.cookies.redirectURL;
       res.clearCookie('redirectURL');
@@ -155,7 +155,7 @@ const ui = () => {
 
     router.all('*', (req, res, next) => {
       if ((!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
-        res.cookie('redirectURL', req.originalUrl);
+        res.cookie('redirectURL', req.originalUrl, { maxAge: 12 * 60 * 60 * 1000 });
         res.redirect(`${contextpath}/auth/login`);
       } else {
         // cookie exists, need to validate before proceeding
