@@ -29,7 +29,7 @@ const app = (req, res, next) => {
       [, token] = words;
     }
   } else if (req.cookies['acm-access-token-cookie']) {
-    token = req.cookies['acm-access-token-cookie']
+    token = `Bearer ${req.cookies['acm-access-token-cookie']}`
   }
 
   if (!token) {
@@ -127,7 +127,10 @@ const ui = () => {
     });
 
     router.use(session(
-      { secret: process.env.OAUTH2_CLIENT_SECRET, resave: true, saveUninitialized: true },
+      { secret: process.env.OAUTH2_CLIENT_SECRET, 
+        resave: true, saveUninitialized: true, 
+        cookie: { maxAge: 12 * 60 * 60 * 1000 }
+      },
     ));
     router.use(bodyParser.urlencoded({ extended: false }));
     router.use(passport.initialize());
