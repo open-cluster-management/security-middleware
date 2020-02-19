@@ -112,6 +112,7 @@ const logout = (req, res, next) => {
             } else {
               res.clearCookie('connect.sid')
               res.clearCookie('acm-access-token-cookie')
+              res.clearCookie('_oauth_proxy')
               // cookieUtil.deleteAuthCookies(res)
               logger.info('redirecting to login from admin cb...')
               // res.redirect(`${contextpath}/auth/login`)
@@ -147,6 +148,7 @@ const logout = (req, res, next) => {
           } else {
             res.clearCookie('connect.sid')
             res.clearCookie('acm-access-token-cookie')
+            res.clearCookie('_oauth_proxy')
             // cookieUtil.deleteAuthCookies(res)
             req.logout()
             logger.info('redirecting to login...')
