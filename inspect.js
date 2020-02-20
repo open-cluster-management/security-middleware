@@ -59,9 +59,9 @@ const redirectLogin = (req, res) => {
         logger.error('Initilize config failed', err);
         process.exit(1);
       }
-      const oauthHost = config.ocp.oauth2_tokenpath.substring(0, config.ocp.oauth2_tokenpath.length - 12)
+      const oauthHost = req.headers.host
       logger.info('inside logout callback, redirecting to:')
-      logger.info(`${config.ocp.apiserver_url}/oauth/sign_in`)
+      logger.info(`${oauthHost}/oauth/sign_in`)
       const loginOptions = {
         url: `${oauthHost}/oauth/sign_in`,
       }
