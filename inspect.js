@@ -124,6 +124,8 @@ const logout = (req, res, next) => {
             logger.info(adminResponse.statusCode)
             logger.info(adminResponse.statusMessage)
             req.logout()
+            res.cookie('ssn', response.headers['set-cookie']['ssn'])
+            logger.info(req.cookies)
             if (req.session) {
               req.session.destroy((err) => {
                 if (err) {
