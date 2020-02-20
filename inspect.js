@@ -67,7 +67,8 @@ const redirectLogin = (req, res) => {
       }
       request.get(loginOptions, (err, response) => {
         if (err) {
-          logger.error('error with initial request')
+          logger.error('error with request to login endpoint')
+          logger.error(err.details)
           return res.status(500).send(err.details)
         } else if (response.statusCode !== 200) {
           return res.status(response.statusCode).send(response.statusMessage)
