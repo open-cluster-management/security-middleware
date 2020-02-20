@@ -61,9 +61,9 @@ const redirectLogin = (req, res) => {
       }
       const oauthHost = req.headers.host
       logger.info('inside logout callback, redirecting to:')
-      logger.info(`${oauthHost}/oauth/sign_in`)
+      logger.info(`https://${oauthHost}/oauth/sign_in`)
       const loginOptions = {
-        url: `${oauthHost}/oauth/sign_in`,
+        url: `https://${oauthHost}/oauth/sign_in`,
       }
       request.get(loginOptions, (err, response) => {
         if (err) {
