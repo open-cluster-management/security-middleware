@@ -1,4 +1,4 @@
-
+/* eslint-disable */
 const express = require('express');
 
 const router = express.Router();
@@ -52,6 +52,31 @@ const app = (req, res, next) => {
   return null;
 };
 
+const redirectLogin = (req, res) => {
+  setTimeout(() => {
+    configjs.initialize((err, config) => {
+      if (err) {
+        logger.error('Initilize config failed', err);
+        process.exit(1);
+      }
+      const oauthHost = config.ocp.oauth2_tokenpath.substring(0, config.ocp.oauth2_tokenpath.length - 12)
+      logger.info('inside logout callback, redirecting to:')
+      logger.info(`${oauthHost}/oauth/sign_in`)
+      const loginOptions = {
+        url: `${oauthHost}/oauth/sign_in`,
+      }
+      request.get(loginOptions, (err, response) => {
+        if (err) {
+          logger.error('error with initial request')
+          return res.status(500).send(err.details)
+        } else if (response.statusCode !== 200) {
+          return res.status(response.statusCode).send(response.statusMessage)
+        }
+      })
+    })
+  }, 10000)
+}
+
 const logout = (req, res, next) => {
   logger.info('starting logout process...')
   const user = req.user ? req.user : null
@@ -59,7 +84,7 @@ const logout = (req, res, next) => {
   const token = req.headers['x-forwarded-access-token'] || req.cookies['acm-access-token-cookie'] || req.session.passport.user.token
   configjs.initialize((err, config) => {
     if (err) {
-      logger.error('Initilized failed', err);
+      logger.error('Initilize config failed', err);
       process.exit(1);
     }
     const logoutOptions = {
@@ -286,6 +311,7 @@ const ui = () => {
   return router;
 };
 
+module.exports.redirectLogin = redirectLogin;
 module.exports.logout = logout;
 module.exports.app = app;
 module.exports.ui = ui;
