@@ -62,18 +62,19 @@ const redirectLogin = (req, res) => {
       const oauthHost = req.headers.host
       logger.info('inside logout callback, redirecting to:')
       logger.info(`https://${oauthHost}/oauth/sign_in`)
-      const loginOptions = {
-        url: `https://${oauthHost}/oauth/sign_in`,
-      }
-      request.get(loginOptions, (err, response) => {
-        if (err) {
-          logger.error('error with request to login endpoint')
-          logger.error(err)
-          return res.status(500).send(err.details)
-        } else if (response.statusCode !== 200) {
-          return res.status(response.statusCode).send(response.statusMessage)
-        }
-      })
+      // const loginOptions = {
+      //   url: `https://${oauthHost}/oauth/sign_in`,
+      // }
+      // request.get(loginOptions, (err, response) => {
+      //   if (err) {
+      //     logger.error('error with request to login endpoint')
+      //     logger.error(err)
+      //     return res.status(500).send(err.details)
+      //   } else if (response.statusCode !== 200) {
+      //     return res.status(response.statusCode).send(response.statusMessage)
+      //   }
+      // })
+      res.redirect(`https://${oauthHost}/oauth/sign_in`)
     })
   }, 10000)
 }
