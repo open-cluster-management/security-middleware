@@ -61,7 +61,7 @@ const redirectLogin = (req, res) => {
       }
       const oauthHost = config.ocp.oauth2_tokenpath.substring(0, config.ocp.oauth2_tokenpath.length - 12)
       logger.info('inside logout callback, redirecting to:')
-      logger.info(`${oauthHost}/oauth/sign_in`)
+      logger.info(`${config.ocp.apiserver_url}/oauth/sign_in`)
       const loginOptions = {
         url: `${oauthHost}/oauth/sign_in`,
       }
