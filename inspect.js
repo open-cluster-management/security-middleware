@@ -113,6 +113,7 @@ const logout = (req, res, next) => {
           logger.info(`${oauthHost}/logout`)
           const adminLogoutOptions = {
             url: `${oauthHost}/logout`,
+            withCredentials: true,
           }
           request.post(adminLogoutOptions, (err, adminResponse) => {
             if (err) {
@@ -125,7 +126,7 @@ const logout = (req, res, next) => {
             logger.info(adminResponse.statusMessage)
             req.logout()
             logger.info(response.headers)
-            res.cookie('ssn', response.headers['Set-Cookie']['ssn'])
+            res.cookie('ssn', response.headers['set-cookie']['ssn'])
             logger.info(req.cookies)
             if (req.session) {
               req.session.destroy((err) => {
