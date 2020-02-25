@@ -139,7 +139,7 @@ const logout = (req, res, next) => {
                 // cookieUtil.deleteAuthCookies(res)
                 logger.info('redirecting to login from admin cb...')
                 // res.redirect(`${contextpath}/auth/login`)
-                return next()
+                return res.status(200).json({admin: true})
               })
             } else {
               res.clearCookie('connect.sid')
@@ -148,21 +148,9 @@ const logout = (req, res, next) => {
               // cookieUtil.deleteAuthCookies(res)
               logger.info('redirecting to login from admin cb...')
               // res.redirect(`${contextpath}/auth/login`)
-              return next()
+              return res.status(200).json({admin: true})
             }
           })
-          // const form = document.createElement('form')
-          // form.action = `${oauthHost}/logout`
-          // form.method = 'POST'
-          // // Redirect back to the console when logout is complete by passing a
-          // // `then` parameter.
-          // const input = document.createElement('input')
-          // input.type = 'hidden'
-          // input.name = 'then'
-          // input.value = `${contextpath}/auth/login`
-          // form.appendChild(input)
-          // document.body.appendChild(form)
-          // form.submit()
         } else {
           if (req.session) {
             req.session.destroy((err) => {
@@ -176,7 +164,7 @@ const logout = (req, res, next) => {
               req.logout()
               logger.info('redirecting to login...')
               // return res.redirect(`${contextpath}/auth/login`)
-              return next()
+              return res.status(200).json({admin: false})
             })
           } else {
             res.clearCookie('connect.sid')
@@ -186,7 +174,7 @@ const logout = (req, res, next) => {
             req.logout()
             logger.info('redirecting to login...')
             // return res.redirect(`${contextpath}/auth/login`)
-            return next()
+            return res.status(200).json({admin: false})
           }
         }
       }
