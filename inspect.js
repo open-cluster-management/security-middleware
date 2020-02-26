@@ -81,6 +81,7 @@ const logout = (req, res) => {
           if (response.statusCode !== 200) {
             return res.status(response.statusCode).send(response.statusMessage);
           }
+          const domainName = req.hostname;
           if (user && user.username && user.username === 'kube:admin') {
             const tPath = config.ocp.oauth2_tokenpath;
             const oauthHost = tPath.substring(0, tPath.length - 12);
@@ -92,13 +93,13 @@ const logout = (req, res) => {
                 }
                 res.clearCookie('connect.sid');
                 res.clearCookie('acm-access-token-cookie');
-                res.clearCookie('_oauth_proxy', { domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/' });
+                res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
                 return res.status(200).json({ admin: true, logoutPath: `${oauthHost}/logout` });
               });
             } else {
               res.clearCookie('connect.sid');
               res.clearCookie('acm-access-token-cookie');
-              res.clearCookie('_oauth_proxy', { domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/' });
+              res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
               return res.status(200).json({ admin: true, logoutPath: `${oauthHost}/logout` });
             }
           } else if (req.session) {
@@ -108,14 +109,14 @@ const logout = (req, res) => {
               }
               res.clearCookie('connect.sid');
               res.clearCookie('acm-access-token-cookie');
-              res.clearCookie('_oauth_proxy', { domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/' });
+              res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
               req.logout();
               return res.status(200).json({ admin: false });
             });
           } else {
             res.clearCookie('connect.sid');
             res.clearCookie('acm-access-token-cookie');
-            res.clearCookie('_oauth_proxy', { domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/' });
+            res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
             req.logout();
             return res.status(200).json({ admin: false });
           }
