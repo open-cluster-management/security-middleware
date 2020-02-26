@@ -80,107 +80,117 @@ const redirectLogin = (req, res) => {
 }
 
 const logout = (req, res, next) => {
-  logger.info('starting logout process...')
-  const user = req.user ? req.user : null
-  // needed to fully log out
   const token = req.headers['x-forwarded-access-token'] || req.cookies['acm-access-token-cookie'] || req.session.passport.user.token
-  configjs.initialize((err, config) => {
+  inspectClient.inspect(req, token, (err, rspns, body) => {
     if (err) {
-      logger.error('Initilize config failed', err);
-      process.exit(1);
-    }
-    const logoutOptions = {
-      url: `${config.ocp.apiserver_url}/apis/oauth.openshift.io/v1/oauthaccesstokens/${token}`,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `Bearer ${token}`
-      }
-    }
-    logger.info('sending initial logout request...')
-    logger.info(logoutOptions)
-    request.delete(logoutOptions, (err, response) => {
-      logger.info(response.body)
-      if (err) {
-        logger.error('error with initial request')
-        return res.status(500).send(err.details)
-      } else if (response.statusCode !== 200) {
-        return res.status(response.statusCode).send(response.statusMessage)
-      } else {
-        logger.info('user:')
-        logger.info(user)
-        if (user && user.username && user.username == 'kube:admin') {
-          const oauthHost = config.ocp.oauth2_tokenpath.substring(0, config.ocp.oauth2_tokenpath.length - 12)
-          logger.info(`${oauthHost}/logout`)
-          const adminLogoutOptions = {
-            url: `${oauthHost}/logout`,
-            withCredentials: true,
+      return res.status(500).send(err.details);
+    } if (body && body.status && body.status.error) {
+      return res.status(401).send(body.status.error);
+    } if (body && body.status && body.status.user) {
+      user = body.status.user;
+      logger.info(user);
+      logger.info('starting logout process...')
+      // needed to fully log out
+      configjs.initialize((err, config) => {
+        if (err) {
+          logger.error('Initilize config failed', err);
+          process.exit(1);
+        }
+        const logoutOptions = {
+          url: `${config.ocp.apiserver_url}/apis/oauth.openshift.io/v1/oauthaccesstokens/${token}`,
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
           }
-          request.post(adminLogoutOptions, (err, adminResponse) => {
-            if (err) {
-              logger.error('error with admin request')
-              return res.status(500).send(err.details)
-            } else if (response.statusCode !== 200) {
-              return res.status(response.statusCode).send(response.statusMessage)
-            }
-            logger.info(adminResponse.statusCode)
-            logger.info(adminResponse.statusMessage)
-            req.logout()
-            // logger.info(response.headers)
-            // res.cookie('ssn', response.headers['set-cookie']['ssn'])
-            // logger.info(req.cookies)
-            if (req.session) {
-              req.session.destroy((err) => {
+        }
+        logger.info('sending initial logout request...')
+        logger.info(logoutOptions)
+        request.delete(logoutOptions, (err, response) => {
+          logger.info(response.body)
+          if (err) {
+            logger.error('error with initial request')
+            return res.status(500).send(err.details)
+          } else if (response.statusCode !== 200) {
+            return res.status(response.statusCode).send(response.statusMessage)
+          } else {
+            logger.info('user:')
+            logger.info(user)
+            if (user && user.username && user.username == 'kube:admin') {
+              const oauthHost = config.ocp.oauth2_tokenpath.substring(0, config.ocp.oauth2_tokenpath.length - 12)
+              logger.info(`${oauthHost}/logout`)
+              const adminLogoutOptions = {
+                url: `${oauthHost}/logout`,
+                withCredentials: true,
+              }
+              request.post(adminLogoutOptions, (err, adminResponse) => {
                 if (err) {
-                  return logger.error(err)
+                  logger.error('error with admin request')
+                  return res.status(500).send(err.details)
+                } else if (response.statusCode !== 200) {
+                  return res.status(response.statusCode).send(response.statusMessage)
                 }
+                logger.info(adminResponse.statusCode)
+                logger.info(adminResponse.statusMessage)
+                req.logout()
+                // logger.info(response.headers)
+                // res.cookie('ssn', response.headers['set-cookie']['ssn'])
+                // logger.info(req.cookies)
+                if (req.session) {
+                  req.session.destroy((err) => {
+                    if (err) {
+                      return logger.error(err)
+                    }
+                    res.clearCookie('connect.sid')
+                    res.clearCookie('acm-access-token-cookie')
+                    res.clearCookie('_oauth_proxy', {domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/'})
+                    // cookieUtil.deleteAuthCookies(res)
+                    logger.info('redirecting to login from admin cb...')
+                    // res.redirect(`${contextpath}/auth/login`)
+                    return res.status(200).json({admin: true})
+                  })
+                } else {
+                  res.clearCookie('connect.sid')
+                  res.clearCookie('acm-access-token-cookie')
+                  res.clearCookie('_oauth_proxy', {domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/'})
+                  // cookieUtil.deleteAuthCookies(res)
+                  logger.info('redirecting to login from admin cb...')
+                  // res.redirect(`${contextpath}/auth/login`)
+                  return res.status(200).json({admin: true})
+                }
+              })
+            } else {
+              if (req.session) {
+                req.session.destroy((err) => {
+                  if (err) {
+                    return logger.error(err)
+                  }
+                  res.clearCookie('connect.sid')
+                  res.clearCookie('acm-access-token-cookie')
+                  res.clearCookie('_oauth_proxy', {domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/'})
+                  // cookieUtil.deleteAuthCookies(res)
+                  req.logout()
+                  logger.info('redirecting to login...')
+                  // return res.redirect(`${contextpath}/auth/login`)
+                  return res.status(200).json({admin: false})
+                })
+              } else {
                 res.clearCookie('connect.sid')
                 res.clearCookie('acm-access-token-cookie')
                 res.clearCookie('_oauth_proxy', {domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/'})
                 // cookieUtil.deleteAuthCookies(res)
-                logger.info('redirecting to login from admin cb...')
-                // res.redirect(`${contextpath}/auth/login`)
-                return res.status(200).json({admin: true})
-              })
-            } else {
-              res.clearCookie('connect.sid')
-              res.clearCookie('acm-access-token-cookie')
-              res.clearCookie('_oauth_proxy', {domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/'})
-              // cookieUtil.deleteAuthCookies(res)
-              logger.info('redirecting to login from admin cb...')
-              // res.redirect(`${contextpath}/auth/login`)
-              return res.status(200).json({admin: true})
-            }
-          })
-        } else {
-          if (req.session) {
-            req.session.destroy((err) => {
-              if (err) {
-                return logger.error(err)
+                req.logout()
+                logger.info('redirecting to login...')
+                // return res.redirect(`${contextpath}/auth/login`)
+                return res.status(200).json({admin: false})
               }
-              res.clearCookie('connect.sid')
-              res.clearCookie('acm-access-token-cookie')
-              res.clearCookie('_oauth_proxy', {domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/'})
-              // cookieUtil.deleteAuthCookies(res)
-              req.logout()
-              logger.info('redirecting to login...')
-              // return res.redirect(`${contextpath}/auth/login`)
-              return res.status(200).json({admin: false})
-            })
-          } else {
-            res.clearCookie('connect.sid')
-            res.clearCookie('acm-access-token-cookie')
-            res.clearCookie('_oauth_proxy', {domain: 'icp-console.apps.scurvy.os.fyre.ibm.com', path: '/'})
-            // cookieUtil.deleteAuthCookies(res)
-            req.logout()
-            logger.info('redirecting to login...')
-            // return res.redirect(`${contextpath}/auth/login`)
-            return res.status(200).json({admin: false})
+            }
           }
-        }
-      }
-    })
-  })
+        })
+      })
+    }
+    return res.status(401).send('The token provided is not valid');
+  });
 }
 
 const ui = () => {
