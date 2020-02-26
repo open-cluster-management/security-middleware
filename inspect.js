@@ -147,7 +147,7 @@ const logout = (req, res, next) => {
                     // cookieUtil.deleteAuthCookies(res)
                     logger.info('redirecting to login from admin cb...')
                     // res.redirect(`${contextpath}/auth/login`)
-                    return res.status(200).json({admin: true})
+                    return res.status(200).json({admin: true, logoutPath: `${oauthHost}/logout`})
                   })
                 } else {
                   res.clearCookie('connect.sid')
@@ -156,7 +156,7 @@ const logout = (req, res, next) => {
                   // cookieUtil.deleteAuthCookies(res)
                   logger.info('redirecting to login from admin cb...')
                   // res.redirect(`${contextpath}/auth/login`)
-                  return res.status(200).json({admin: true})
+                  return res.status(200).json({admin: true, logoutPath: `${oauthHost}/logout`})
                 }
               })
             } else {
