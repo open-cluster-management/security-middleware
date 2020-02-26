@@ -189,7 +189,6 @@ const logout = (req, res, next) => {
         })
       })
     }
-    return res.status(401).send('The token provided is not valid');
   });
 }
 
