@@ -98,6 +98,7 @@ const logout = (req, res, next) => {
       }
     }
     logger.info('sending initial logout request...')
+    logger.info(logoutOptions)
     request.delete(logoutOptions, (err, response) => {
       logger.info(response.body)
       if (err) {
