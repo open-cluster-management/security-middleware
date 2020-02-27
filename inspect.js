@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 const express = require('express');
 
 const router = express.Router();
@@ -120,9 +119,11 @@ const logout = (req, res) => {
             req.logout();
             return res.status(200).json({ admin: false });
           }
+          return null;
         });
       });
     }
+    return null;
   });
 };
 
