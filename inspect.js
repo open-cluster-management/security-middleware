@@ -1,4 +1,3 @@
-
 const express = require('express');
 
 const router = express.Router();
@@ -29,7 +28,7 @@ const app = (req, res, next) => {
       [, token] = words;
     }
   } else if (req.cookies['acm-access-token-cookie']) {
-    token = `Bearer ${req.cookies['acm-access-token-cookie']}`
+    token = `Bearer ${req.cookies['acm-access-token-cookie']}`;
   }
 
   if (!token) {
@@ -50,6 +49,82 @@ const app = (req, res, next) => {
     return res.status(401).send('The token provided is not valid');
   });
   return null;
+};
+
+const logout = (req, res) => {
+  const token = req.headers['x-forwarded-access-token'] || req.cookies['acm-access-token-cookie'] || req.session.passport.user.token;
+  inspectClient.inspect(req, token, (tokenErr, rspns, body) => {
+    if (tokenErr) {
+      return res.status(500).send(tokenErr.details);
+    } if (body && body.status && body.status.error) {
+      return res.status(401).send(body.status.error);
+    } if (body && body.status && body.status.user) {
+      const { user } = body.status;
+      configjs.initialize((configErr, config) => {
+        if (configErr) {
+          logger.error('Initilize config failed', configErr);
+          process.exit(1);
+        }
+        const logoutOptions = {
+          url: `${config.ocp.apiserver_url}/apis/oauth.openshift.io/v1/oauthaccesstokens/${token}`,
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        };
+        request.delete(logoutOptions, (err, response) => {
+          if (err) {
+            return res.status(500).send(err.details);
+          }
+          if (response.statusCode !== 200) {
+            return res.status(response.statusCode).send(response.statusMessage);
+          }
+          const domainName = req.hostname;
+          if (user && user.username && user.username === 'kube:admin') {
+            const tPath = config.ocp.oauth2_tokenpath;
+            const oauthHost = tPath.substring(0, tPath.length - 12);
+            req.logout();
+            if (req.session) {
+              req.session.destroy((destroyErr) => {
+                if (err) {
+                  return logger.error(destroyErr);
+                }
+                res.clearCookie('connect.sid');
+                res.clearCookie('acm-access-token-cookie');
+                res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
+                return res.status(200).json({ admin: true, logoutPath: `${oauthHost}/logout` });
+              });
+            } else {
+              res.clearCookie('connect.sid');
+              res.clearCookie('acm-access-token-cookie');
+              res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
+              return res.status(200).json({ admin: true, logoutPath: `${oauthHost}/logout` });
+            }
+          } else if (req.session) {
+            req.session.destroy((destroyErr) => {
+              if (destroyErr) {
+                return logger.error(destroyErr);
+              }
+              res.clearCookie('connect.sid');
+              res.clearCookie('acm-access-token-cookie');
+              res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
+              req.logout();
+              return res.status(200).json({ admin: false });
+            });
+          } else {
+            res.clearCookie('connect.sid');
+            res.clearCookie('acm-access-token-cookie');
+            res.clearCookie('_oauth_proxy', { domain: domainName, path: '/' });
+            req.logout();
+            return res.status(200).json({ admin: false });
+          }
+          return res.status(500).send('Unknown error');
+        });
+      });
+    }
+    return res.status(500).send('Unknown error');
+  });
 };
 
 const ui = () => {
@@ -127,9 +202,11 @@ const ui = () => {
     });
 
     router.use(session(
-      { secret: process.env.OAUTH2_CLIENT_SECRET, 
-        resave: true, saveUninitialized: true, 
-        cookie: { maxAge: 12 * 60 * 60 * 1000 }
+      {
+        secret: process.env.OAUTH2_CLIENT_SECRET,
+        resave: true,
+        saveUninitialized: true,
+        cookie: { maxAge: 12 * 60 * 60 * 1000 },
       },
     ));
     router.use(bodyParser.urlencoded({ extended: false }));
@@ -146,19 +223,12 @@ const ui = () => {
       res.redirect(redirectURL);
     });
 
-    router.get(`${contextpath}/logout`, (req, res) => {
-      req.session.destroy((err) => {
-        if (err) {
-          return logger.error(err);
-        }
-        res.clearCookie('connect.sid');
-        return res.redirect(`${contextpath}/auth/login`);
-      });
-    });
+    router.get(`${contextpath}/logout`, logout);
 
     router.all('*', (req, res, next) => {
-      if ((!req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
-        res.cookie('redirectURL', req.originalUrl);
+      if ((!req.session || !req.session.passport || !req.session.passport.user) && !req.cookies['acm-access-token-cookie']) {
+        const redirect = req.originalUrl.endsWith('logout') ? contextpath : req.originalUrl;
+        res.cookie('redirectURL', redirect);
         res.redirect(`${contextpath}/auth/login`);
       } else {
         // cookie exists, need to validate before proceeding
@@ -184,6 +254,6 @@ const ui = () => {
   return router;
 };
 
-
+module.exports.logout = logout;
 module.exports.app = app;
 module.exports.ui = ui;

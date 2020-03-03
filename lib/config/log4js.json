@@ -9,6 +9,6 @@
 		}
 	},
 	"categories": {
-		"default": { "appenders": ["console"], "level": "info", "enableCallStack": false },
+		"default": { "appenders": ["console"], "level": "info", "enableCallStack": false }
 	}
 }
