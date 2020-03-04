@@ -119,11 +119,11 @@ const logout = (req, res) => {
             req.logout();
             return res.status(200).json({ admin: false });
           }
-          return res.status(500).send('Unknown error');
+          return null;
         });
       });
     }
-    return res.status(500).send('Unknown error');
+    return null;
   });
 };
 
