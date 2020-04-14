@@ -222,7 +222,7 @@ const ui = () => {
         {
           httpOnly: true, // server-side only
           secure: true,   // https only
-          sameSite: process.env.NODE_ENV === 'production' // same site only in production
+          sameSite: false // allow different site for non-production
         }
       );
       req.user = req.session.passport.user;
