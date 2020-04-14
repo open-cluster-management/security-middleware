@@ -216,7 +216,15 @@ const ui = () => {
     router.get(`${contextpath}/auth/login`, passport.authenticate('oauth2'));
 
     router.get(`${contextpath}/auth/callback`, passport.authenticate('oauth2', { failureRedirect: `${contextpath}/auth/login` }), (req, res) => {
-      res.cookie('acm-access-token-cookie', req.session.passport.user.token);
+      res.cookie(
+        'acm-access-token-cookie',
+        req.session.passport.user.token,
+        {
+          httpOnly: true, // server-side only
+          secure: true,   // https only
+          sameSite: false // allow different site for non-production
+        }
+      );
       req.user = req.session.passport.user;
       const redirectURL = req.cookies.redirectURL === '' ? `${contextpath}/welcome` : req.cookies.redirectURL;
       res.clearCookie('redirectURL');
