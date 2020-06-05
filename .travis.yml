@@ -1,0 +1,18 @@
+sudo: required
+language: node_js
+
+branches:
+  only:
+    - master
+    - /^release-[0-9]+\..*$/
+
+stages:
+  - build
+
+jobs:
+  include:
+    - stage: build
+      name: "Build the module"
+      script:
+        - npm run test
+        - npm run lint

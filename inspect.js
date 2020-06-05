@@ -221,9 +221,9 @@ const ui = () => {
         req.session.passport.user.token,
         {
           httpOnly: true, // server-side only
-          secure: true,   // https only
-          sameSite: false // allow different site for non-production
-        }
+          secure: true, // https only
+          sameSite: false, // allow different site for non-production
+        },
       );
       req.user = req.session.passport.user;
       const redirectURL = req.cookies.redirectURL === '' ? `${contextpath}/welcome` : req.cookies.redirectURL;
