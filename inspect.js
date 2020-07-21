@@ -28,7 +28,7 @@ const app = (req, res, next) => {
       [, token] = words;
     }
   } else if (req.cookies['acm-access-token-cookie']) {
-    token = `Bearer ${req.cookies['acm-access-token-cookie']}`;
+    token = `${req.cookies['acm-access-token-cookie']}`;
   }
 
   if (!token) {
