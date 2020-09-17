@@ -1,6 +1,6 @@
 {
   "name": "security-middleware",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "security middleware for openshift oauth",
   "main": "inspect.js",
   "scripts": {
