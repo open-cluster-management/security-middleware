@@ -4,6 +4,7 @@ const router = express.Router();
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const log4js = require('log4js');
+const crypto = require('crypto');
 
 const logger = log4js.getLogger();
 const passport = require('passport');
@@ -65,8 +66,16 @@ const logout = (req, res) => {
           logger.error('Initilize config failed', configErr);
           process.exit(1);
         }
+        let tokenName = token;
+        const sha256Prefix = 'sha256~';
+        if (tokenName.startsWith(sha256Prefix)) {
+          tokenName = `sha256~${crypto.createHash('sha256').update(token.substring(sha256Prefix.length)).digest('base64')
+            .replace(/=/g, '')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')}`;
+        }
         const logoutOptions = {
-          url: `${config.ocp.apiserver_url}/apis/oauth.openshift.io/v1/oauthaccesstokens/${token}`,
+          url: `${config.ocp.apiserver_url}/apis/oauth.openshift.io/v1/oauthaccesstokens/${tokenName}`,
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
