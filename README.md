@@ -12,7 +12,7 @@ OAUTH2_REDIRECT_URL #redirect url
 API_SERVER_URL #kube api url
 SERVICEACCT_TOKEN #kube token
 ```
-For more information about openshift OAuth, see [here](https://docs.openshift.com/container-platform/4.2/authentication/configuring-internal-oauth.html#oauth-register-additional-client_configuring-internal-oauth)
+For more information about openshift OAuth, see [here](https://docs.openshift.com/container-platform/latest/authentication/configuring-internal-oauth.html#oauth-register-additional-client_configuring-internal-oauth)
 ### Use it
 To protect `ui`
 ```javascript
