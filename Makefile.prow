@@ -3,6 +3,6 @@
 -include /opt/build-harness/Makefile.prow
 
 .PHONY: unit-test
-unit-test:
-  npm run test
+unit-test::
+	npm run test
 	npm run lint
