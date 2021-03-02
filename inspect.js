@@ -1,3 +1,5 @@
+/* Copyright Contributors to the Open Cluster Management project */
+
 const express = require('express');
 
 const router = express.Router();

@@ -1,3 +1,5 @@
+[comment]: # ( Copyright Contributors to the Open Cluster Management project )
+
 # security-middleware
 Security middleware for OCP oauth server
 ## Usage
