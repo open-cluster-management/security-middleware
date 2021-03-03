@@ -4,6 +4,6 @@
 
 .PHONY: unit-test
 unit-test::
-	npm install
+	npm ci
 	npm run test
 	npm run lint
