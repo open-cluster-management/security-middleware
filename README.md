@@ -24,7 +24,7 @@ For more information about Openshift OAuth, see the [Openshift documentation](ht
 
 ### Use it
 
-- To protect the `ui`:
+- To implement the `ui`:
   ```javascript
   const inspect = require('security-middleware')
   router.all(['/', '/*'], inspect.ui(), app)
