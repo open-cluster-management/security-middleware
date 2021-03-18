@@ -1,7 +1,7 @@
 {
-  "name": "security-middleware",
-  "version": "1.0.1",
-  "description": "security middleware for openshift oauth",
+  "name": "@open-cluster-management/security-middleware",
+  "version": "1.0.2",
+  "description": "Security middleware for authentication",
   "main": "inspect.js",
   "scripts": {
     "test": "echo \"No tests specified\" && exit 0",
@@ -12,10 +12,10 @@
     "url": "git+https://github.com/open-cluster-management/security-middleware.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "engines": {
-    "node": "10.15.3",
-    "npm": "6.4.1"
+    "node": ">=10.15.3",
+    "npm": ">=6.4.1"
   },
   "bugs": {
     "url": "https://github.com/open-cluster-management/security-middleware/issues"
@@ -34,5 +34,12 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "directories": {
+    "lib": "lib"
   }
 }
