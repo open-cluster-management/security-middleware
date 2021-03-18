@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/open-cluster-management/security-middleware.git"
+    "url": "git+https://github.com/open-cluster-management/security-middleware.git"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -38,5 +38,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  } 
+  },
+  "directories": {
+    "lib": "lib"
+  }
 }
