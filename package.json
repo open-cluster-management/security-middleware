@@ -1,7 +1,7 @@
 {
   "name": "@open-cluster-management/security-middleware",
   "version": "1.0.2",
-  "description": "security middleware for openshift oauth",
+  "description": "Security middleware for authentication",
   "main": "inspect.js",
   "scripts": {
     "test": "echo \"No tests specified\" && exit 0",
