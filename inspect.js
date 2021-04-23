@@ -15,10 +15,6 @@ const request = require('request').defaults({ rejectUnauthorized: false });
 const configjs = require('./lib/config/init-auth-config.js');
 const inspectClient = require('./lib/inspect-client');
 
-const log4jsConfig = process.env.LOG4JS_CONFIG ? JSON.parse(process.env.LOG4JS_CONFIG) : undefined;
-log4js.configure(log4jsConfig || './config/log4js.json');
-
-
 const app = (req, res, next) => {
   let token;
   if (req.headers.authorization || req.headers.Authorization) {
