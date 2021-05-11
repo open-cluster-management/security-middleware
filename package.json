@@ -1,6 +1,6 @@
 {
   "name": "@open-cluster-management/security-middleware",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Security middleware for authentication",
   "main": "inspect.js",
   "scripts": {
